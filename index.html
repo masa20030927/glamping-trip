@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#354638">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Glamping Trip</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --green: #354638;
+      --green-button: #557354;
+      --green-soft: #a6b69b;
+      --cream: #f5f1e8;
+      --card: #fffdf8;
+      --line: #d9dfd1;
+      --muted: #667663;
+    }
+
+    body {
+      margin: 0;
+      background: var(--cream);
+      color: var(--green);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.7;
+    }
+
+    header {
+      padding: 48px 20px;
+      text-align: center;
+      color: white;
+      background:
+        linear-gradient(#17251c66, #17251caa),
+        url("https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?auto=format&fit=crop&w=1200&q=80")
+        center/cover;
+    }
+
+    header p { letter-spacing: 4px; font-size: 12px; margin: 8px 0; }
+    header h1 { font-size: clamp(28px, 5vw, 36px); margin: 12px 0; }
+    header .sub { letter-spacing: 1px; }
+
+    main {
+      width: min(100%, 680px);
+      margin: auto;
+      padding: 20px;
+    }
+
+    section {
+      background: var(--card);
+      border-radius: 18px;
+      padding: 22px;
+      margin-bottom: 18px;
+      box-shadow: 0 4px 16px #3546380c;
+      min-width: 0;
+    }
+
+    h2 {
+      font-size: 19px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 10px;
+      margin-top: 0;
+    }
+
+    .info { color: var(--muted); }
+    label { display: block; padding: 5px 0; }
+    input, textarea { font: inherit; accent-color: var(--green-button); }
+    input[type="text"], input[type="time"], textarea {
+      width: 100%;
+      min-width: 0;
+      padding: 10px 12px;
+      border: 1px solid #c9c9c2;
+      border-radius: 8px;
+      background: #fff;
+      color: #222;
+      font-size: 16px;
+    }
+
+    .info-field { margin-bottom: 12px; }
+    .info-field:last-child { margin-bottom: 0; }
+
+    .schedule {
+      display: grid;
+      grid-template-columns: 105px minmax(0, 1fr) auto;
+      align-items: start;
+      gap: 10px;
+      border-left: 2px solid var(--green-soft);
+      padding: 0 0 20px 14px;
+      margin-left: 6px;
+    }
+
+    .schedule-main { min-width: 0; }
+    .schedule-title { margin-bottom: 8px; }
+    .note-label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+      margin: 3px 0 4px;
+    }
+
+    .schedule-note {
+      min-height: 76px;
+      resize: vertical;
+      background: #faf8f2;
+      border-color: #dedfd4;
+    }
+
+    button {
+      background: var(--green-button);
+      color: white;
+      border: 0;
+      padding: 11px 16px;
+      border-radius: 24px;
+      cursor: pointer;
+      font: inherit;
+      line-height: 1.4;
+      min-height: 44px;
+    }
+
+    button:hover { filter: brightness(0.96); }
+    button:focus-visible, input:focus-visible, textarea:focus-visible {
+      outline: 3px solid #9bb48e;
+      outline-offset: 2px;
+    }
+
+    .delete-button { padding: 10px 14px; }
+    .section-actions { margin-top: 2px; }
+    .checklist label { padding: 6px 0; }
+    .checklist input { margin-right: 8px; }
+    #progress { margin: 12px 0; }
+
+    .save-status {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: right;
+      margin: 12px 0 0;
+    }
+
+    footer {
+      text-align: center;
+      padding: 25px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+
+    .home-intro { text-align: center; margin: 4px 0 18px; color: var(--muted); }
+    .menu-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .menu-card {
+      display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between;
+      min-height: 132px; padding: 18px; border: 1px solid var(--line); border-radius: 16px;
+      background: var(--card); color: var(--green); text-align: left; cursor: pointer;
+      box-shadow: 0 4px 16px #3546380c; transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .menu-card:hover { transform: translateY(-2px); box-shadow: 0 7px 20px #35463818; }
+    .menu-icon { font-size: 27px; margin-bottom: 9px; }
+    .menu-title { font-weight: 700; font-size: 16px; }
+    .menu-caption { font-size: 12px; color: var(--muted); margin-top: 4px; }
+    .menu-arrow { align-self: flex-end; font-size: 20px; color: var(--green-button); }
+    .page-top { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .back-button { flex-shrink: 0; padding: 8px 13px; min-height: 40px; }
+    .page-top h2 { flex: 1; margin: 0; }
+    .page-view[hidden] { display: none !important; }
+    .quick-summary { border-radius: 12px; background: #edf0e7; padding: 12px 14px; margin-bottom: 14px; font-size: 14px; }
+    select { width: 100%; min-width: 0; padding: 10px 12px; border: 1px solid #c9c9c2; border-radius: 8px; background: #fff; color: #222; font: inherit; font-size: 16px; }
+    .assignment-card { border: 1px solid var(--line); border-radius: 14px; padding: 15px; margin: 12px 0; background: #fffefa; }
+    .assignment-card h3 { margin: 0 0 10px; font-size: 16px; }
+    .assignment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .assignment-grid .full { grid-column: 1 / -1; }
+    .role-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; padding: 10px 0; border-bottom: 1px solid #edf0e7; }
+    .role-row:last-child { border-bottom: 0; }
+    .role-row label { font-size: 13px; color: var(--muted); }
+    .role-row input { width: 100%; min-width: 0; padding: 9px 10px; border: 1px solid #c9c9c2; border-radius: 8px; background: #fff; font-size: 16px; }
+    .section-hint { color: var(--muted); font-size: 13px; margin-top: 0; }
+    .expense-row { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr) minmax(0, .8fr) auto; gap: 8px; align-items: end; padding: 12px 0; border-bottom: 1px solid #edf0e7; }
+    .expense-row label { font-size: 12px; color: var(--muted); }
+    .expense-row input { width: 100%; min-width: 0; padding: 9px 10px; border: 1px solid #c9c9c2; border-radius: 8px; background: #fff; font: inherit; font-size: 16px; }
+    /* 数値入力欄の文字色を明示し、Edge等で入力した数字が見えなくなる問題を防ぐ */
+    .expense-row input[type="number"] {
+      color: #222 !important;
+      -webkit-text-fill-color: #222 !important;
+      background-color: #fff;
+      color-scheme: light;
+      opacity: 1;
+    }
+    .expense-row .expense-delete { padding: 9px 11px; min-height: 40px; }
+    .cost-summary { display: grid; gap: 10px; }
+    .cost-summary > div { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px; border-radius: 12px; background: #edf0e7; }
+    .cost-summary span { font-size: 13px; }
+    .cost-summary strong { font-size: 20px; white-space: nowrap; }
+
+    .settlement-result { display: grid; gap: 10px; margin-top: 12px; }
+    .settlement-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px; border-radius: 12px; background: #edf0e7; }
+    .settlement-transfer { font-weight: 700; line-height: 1.7; }
+    .settlement-amount { white-space: nowrap; font-size: 18px; font-weight: 800; color: var(--green, #354638); }
+    .settlement-note { margin: 4px 0 0; color: #687064; font-size: 13px; }
+    .member-balance-item { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 11px 14px; border: 1px solid #e4e7dc; border-radius: 10px; background: #fffdf8; }
+    .member-balance-name { font-weight: 700; }
+    .member-balance-status { font-size: 14px; text-align: right; }
+    .member-balance-status.receive { color: #356b43; }
+    .member-balance-status.pay { color: #8b4a2f; }
+    .member-balance-status.clear { color: #687064; }
+    .settlement-warning { padding: 12px; border-radius: 10px; background: #fff0d9; color: #754b16; font-size: 14px; }
+
+    @media (max-width: 520px) { .expense-row { grid-template-columns: 1fr 1fr; } .expense-row > div:first-child { grid-column: 1 / -1; } .expense-row .expense-delete { justify-self: start; } }
+    @media (max-width: 380px) { .menu-grid { gap: 9px; } .menu-card { padding: 14px; min-height: 125px; } }
+    @media (max-width: 420px) { .assignment-grid { grid-template-columns: 1fr; } .assignment-grid .full { grid-column: auto; } .role-row { grid-template-columns: 1fr; gap: 2px; } }
+
+    @media (max-width: 520px) {
+      header { padding: 38px 16px; }
+      main { padding: 14px; }
+      section { padding: 17px; border-radius: 15px; }
+      .schedule {
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        padding-left: 10px;
+      }
+      .schedule-time { grid-column: 1 / 2; max-width: 150px; }
+      .schedule-main { grid-column: 1 / -1; grid-row: 2; }
+      .delete-button { grid-column: 2; grid-row: 1; }
+      .schedule-note { min-height: 84px; }
+      .delete-button { padding: 9px 13px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <p>OUR LITTLE ADVENTURE</p>
+    <h1>Glamping Trip</h1>
+    <div class="sub">自然の中で、特別なひとときを。</div>
+    <p>2026. 11. 14 — 11. 15</p>
+  </header>
+
+  <main>
+    <div id="home-page" class="page-view">
+      <p class="home-intro">みんなでつくる、旅のしおり。<br>見たい項目をタップしてね！</p>
+      <div class="quick-summary">
+        <strong>🏕️ Glamping Trip</strong><br>
+        予定も持ち物も、ここでまとめてチェック。
+      </div>
+      <div class="menu-grid" aria-label="しおりのメニュー">
+        <button type="button" class="menu-card" data-page="overview-page">
+          <span><span class="menu-icon">🏕️</span><br><span class="menu-title">旅行の概要</span><br><span class="menu-caption">日程・場所・メンバー</span></span><span class="menu-arrow">↗</span>
+        </button>
+        <button type="button" class="menu-card" data-page="schedule-page">
+          <span><span class="menu-icon">🕒</span><br><span class="menu-title">スケジュール</span><br><span class="menu-caption">予定・時間・詳細メモ</span></span><span class="menu-arrow">↗</span>
+        </button>
+        <button type="button" class="menu-card" data-page="checklist-page">
+          <span><span class="menu-icon">🎒</span><br><span class="menu-title">持ち物リスト</span><br><span class="menu-caption">忘れ物チェック</span></span><span class="menu-arrow">↗</span>
+        </button>
+        <button type="button" class="menu-card" data-page="memories-page">
+          <span><span class="menu-icon">💌</span><br><span class="menu-title">思い出ページ</span><br><span class="menu-caption">旅の記録スペース</span></span><span class="menu-arrow">↗</span>
+        </button>
+        <button type="button" class="menu-card" data-page="roles-page">
+          <span><span class="menu-icon">🚙</span><br><span class="menu-title">車・役割分担</span><br><span class="menu-caption">乗車メンバー・担当決め</span></span><span class="menu-arrow">↗</span>
+        </button>
+        <button type="button" class="menu-card" data-page="cost-page">
+          <span><span class="menu-icon">💰</span><br><span class="menu-title">費用・精算</span><br><span class="menu-caption">支払い・割り勘の確認</span></span><span class="menu-arrow">↗</span>
+        </button>
+      </div>
+      <p class="save-status">項目をタップすると、そのページに移動するよ</p>
+    </div>
+
+    <div id="overview-page" class="page-view" hidden>
+      <div class="page-top"><button type="button" class="back-button" data-home>← メニュー</button><h2>🏕️ グランピング概要</h2></div>
+    <section class="info-section">
+      <h2>🏕️ グランピング概要</h2>
+      <div class="info-field">
+        <label for="trip-date">日程：</label>
+        <input id="trip-date" type="text" value="2026年11月9日〜10日">
+      </div>
+      <div class="info-field">
+        <label for="trip-place">場所・集合場所：</label>
+        <input id="trip-place" type="text" value="グランピングB&amp;V富士山河口湖（15:00 check in）">
+      </div>
+      <div class="form-group">
+  <label>URL：</label>
+  <input type="text" placeholder="旅行先のURLを貼る">
+</div>
+      <div class="info-field">
+        <label for="trip-budget">予算：</label>
+        <input id="trip-budget" type="text" value="1人 13,000円">
+      </div>
+      <div class="info-field">
+        <label for="trip-members">メンバー（6人）：</label>
+        <input id="trip-members" type="text" placeholder="名前1, 名前2, 名前3, 名前4, 名前5, 名前6" value="あやと、けんしろー、そうた、だいち、まさと、ゆうま">
+      </div>
+    </section>
+
+    </div>
+    <div id="schedule-page" class="page-view" hidden>
+      <div class="page-top"><button type="button" class="back-button" data-home>← メニュー</button><h2>🕒 SCHEDULE</h2></div>
+    <section>
+      <h2>🕒 SCHEDULE</h2>
+      <div id="schedule-list">
+        <div class="schedule">
+          <input type="time" class="schedule-time" value="10:00" aria-label="集合・出発の時刻">
+          <div class="schedule-main">
+            <input type="text" class="schedule-title" value="集合・出発 🚙" aria-label="予定名">
+            <div class="note-label">📝 詳細・メモ</div>
+            <textarea class="schedule-note" placeholder="集合場所、担当者、持ち物などを入力…" aria-label="集合・出発の詳細・メモ"></textarea>
+          </div>
+          <button type="button" class="delete-button" aria-label="集合・出発を削除">削除</button>
+        </div>
+        <div class="schedule">
+          <input type="time" class="schedule-time" value="10:00" aria-label="チェックインの時刻">
+          <div class="schedule-main">
+            <input type="text" class="schedule-title" value="チェックイン ⛺" aria-label="予定名">
+            <div class="note-label">📝 詳細・メモ</div>
+            <textarea class="schedule-note" placeholder="集合場所、担当者、持ち物などを入力…" aria-label="チェックインの詳細・メモ"></textarea>
+          </div>
+          <button type="button" class="delete-button" aria-label="チェックインを削除">削除</button>
+        </div>
+        <div class="schedule">
+          <input type="time" class="schedule-time" value="10:00" aria-label="BBQスタートの時刻">
+          <div class="schedule-main">
+            <input type="text" class="schedule-title" value="BBQスタート 🍖" aria-label="予定名">
+            <div class="note-label">📝 詳細・メモ</div>
+            <textarea class="schedule-note" placeholder="集合場所、担当者、持ち物などを入力…" aria-label="BBQスタートの詳細・メモ"></textarea>
+          </div>
+          <button type="button" class="delete-button" aria-label="BBQスタートを削除">削除</button>
+        </div>
+        <div class="schedule">
+          <input type="time" class="schedule-time" value="10:00" aria-label="焚火の時刻">
+          <div class="schedule-main">
+            <input type="text" class="schedule-title" value="焚火 🔥" aria-label="予定名">
+            <div class="note-label">📝 詳細・メモ</div>
+            <textarea class="schedule-note" placeholder="集合場所、担当者、持ち物などを入力…" aria-label="焚火の詳細・メモ"></textarea>
+          </div>
+          <button type="button" class="delete-button" aria-label="焚火を削除">削除</button>
+        </div>
+        <div class="schedule">
+          <input type="time" class="schedule-time" value="10:00" aria-label="朝ごはんの時刻">
+          <div class="schedule-main">
+            <input type="text" class="schedule-title" value="朝ごはん 🌅" aria-label="予定名">
+            <div class="note-label">📝 詳細・メモ</div>
+            <textarea class="schedule-note" placeholder="集合場所、担当者、持ち物などを入力…" aria-label="朝ごはんの詳細・メモ"></textarea>
+          </div>
+          <button type="button" class="delete-button" aria-label="朝ごはんを削除">削除</button>
+        </div>
+        <div class="schedule">
+          <input type="time" class="schedule-time" value="10:00" aria-label="チェックアウトの時刻">
+          <div class="schedule-main">
+            <input type="text" class="schedule-title" value="チェックアウト 🏠" aria-label="予定名">
+            <div class="note-label">📝 詳細・メモ</div>
+            <textarea class="schedule-note" placeholder="集合場所、担当者、持ち物などを入力…" aria-label="チェックアウトの詳細・メモ"></textarea>
+          </div>
+          <button type="button" class="delete-button" aria-label="チェックアウトを削除">削除</button>
+        </div>
+      </div>
+      <div class="section-actions">
+        <button type="button" id="add-schedule">＋ 予定を追加</button>
+      </div>
+      <p class="save-status" id="save-status" aria-live="polite">このブラウザに自動保存されます</p>
+    </section>
+
+    </div>
+    <div id="checklist-page" class="page-view" hidden>
+      <div class="page-top"><button type="button" class="back-button" data-home>← メニュー</button><h2>🎒 CHECK LIST</h2></div>
+    <section>
+      <h2>🎒 CHECK LIST</h2>
+      <div id="checklist" class="checklist">
+        <label><input type="checkbox"> 着替え・パジャマ</label>
+        <label><input type="checkbox"> 歯ブラシ・洗面用具</label>
+        <label><input type="checkbox"> スマホ・充電器</label>
+        <label><input type="checkbox"> タオル・スキンケア</label>
+        <label><input type="checkbox"> 飲み物・おやつ</label>
+        <label><input type="checkbox"> 羽織るもの</label>
+      </div>
+      <p id="progress" class="info">0 / 6 items checked</p>
+      <button type="button" id="reset-list">チェックをリセット</button>
+    </section>
+
+    </div>
+    <div id="memories-page" class="page-view" hidden>
+      <div class="page-top"><button type="button" class="back-button" data-home>← メニュー</button><h2>💌 MEMORIES</h2></div>
+    <section>
+      <h2>💌 MEMORIES</h2>
+      <p>いっぱい写真を撮って、素敵な思い出を作ろう！</p>
+    </section>
+    </div>
+
+    <div id="roles-page" class="page-view" hidden>
+      <div class="page-top"><button type="button" class="back-button" data-home>← メニュー</button><h2>🚙 車・役割分担</h2></div>
+      <section>
+        <h2>🚗 車の分担</h2>
+        <p class="section-hint">車ごとの運転手・乗る人・集合時間を入力しよう。</p>
+        <div class="assignment-card">
+          <h3>🚙 1台目</h3>
+          <div class="assignment-grid">
+            <div><label for="car1-name">車・持ち主</label><input id="car1-name" type="text" placeholder="例：あやとの車"></div>
+            <div><label for="car1-driver">運転手</label><input id="car1-driver" type="text" placeholder="名前"></div>
+            <div class="full"><label for="car1-passengers">乗車メンバー</label><input id="car1-passengers" type="text" placeholder="例：あやと、けんしろー、そうた"></div>
+            <div><label for="car1-time">集合・出発時間</label><input id="car1-time" type="time" value="10:00"></div>
+            <div><label for="car1-meet">集合場所</label><input id="car1-meet" type="text" placeholder="例：駅前のロータリー"></div>
+          </div>
+        </div>
+        <div class="assignment-card">
+          <h3>🚙 2台目</h3>
+          <div class="assignment-grid">
+            <div><label for="car2-name">車・持ち主</label><input id="car2-name" type="text" placeholder="例：だいちの車"></div>
+            <div><label for="car2-driver">運転手</label><input id="car2-driver" type="text" placeholder="名前"></div>
+            <div class="full"><label for="car2-passengers">乗車メンバー</label><input id="car2-passengers" type="text" placeholder="例：だいち、まさと、ゆうま"></div>
+            <div><label for="car2-time">集合・出発時間</label><input id="car2-time" type="time" value="10:00"></div>
+            <div><label for="car2-meet">集合場所</label><input id="car2-meet" type="text" placeholder="例：コンビニの駐車場"></div>
+          </div>
+        </div>
+      </section>
+      <section>
+        <h2>🧤 役割分担（6人）</h2>
+        <p class="section-hint">名前と担当を自由に変更できるよ。担当が決まっていなければ空欄でOK！</p>
+        <div id="role-list">
+          <div class="role-row"><div><label for="role-name-1">メンバー 1</label><input id="role-name-1" class="role-name" type="text" value="あやと" placeholder="名前"></div><div><label for="role-task-1">担当</label><input id="role-task-1" class="role-task" type="text" placeholder="例：運転・買い出し"></div></div>
+          <div class="role-row"><div><label for="role-name-2">メンバー 2</label><input id="role-name-2" class="role-name" type="text" value="けんしろー" placeholder="名前"></div><div><label for="role-task-2">担当</label><input id="role-task-2" class="role-task" type="text" placeholder="例：食材・飲み物"></div></div>
+          <div class="role-row"><div><label for="role-name-3">メンバー 3</label><input id="role-name-3" class="role-name" type="text" value="そうた" placeholder="名前"></div><div><label for="role-task-3">担当</label><input id="role-task-3" class="role-task" type="text" placeholder="例：BBQ準備"></div></div>
+          <div class="role-row"><div><label for="role-name-4">メンバー 4</label><input id="role-name-4" class="role-name" type="text" value="だいち" placeholder="名前"></div><div><label for="role-task-4">担当</label><input id="role-task-4" class="role-task" type="text" placeholder="例：火起こし"></div></div>
+          <div class="role-row"><div><label for="role-name-5">メンバー 5</label><input id="role-name-5" class="role-name" type="text" value="まさと" placeholder="名前"></div><div><label for="role-task-5">担当</label><input id="role-task-5" class="role-task" type="text" placeholder="例：写真係"></div></div>
+          <div class="role-row"><div><label for="role-name-6">メンバー 6</label><input id="role-name-6" class="role-name" type="text" value="ゆうま" placeholder="名前"></div><div><label for="role-task-6">担当</label><input id="role-task-6" class="role-task" type="text" placeholder="例：片付け"></div></div>
+        </div>
+        <p class="save-status" id="roles-save-status" aria-live="polite">入力内容はこのブラウザに自動保存されます</p>
+      </section>
+    </div>
+
+    <div id="cost-page" class="page-view" hidden>
+      <div class="page-top"><button type="button" class="back-button" data-home>← メニュー</button><h2>💰 費用・精算</h2></div>
+      <section>
+        <h2>🧾 支払い記録</h2>
+        <p class="section-hint">宿泊費・食材・交通費などを記録しよう。金額は円で入力してね。</p>
+        <div id="expense-list">
+          <div class="expense-row">
+            <div><label>内容</label><input class="expense-item" type="text" placeholder="例：食材・飲み物"></div>
+            <div><label>支払った人</label><input class="expense-payer" type="text" placeholder="例：あやと"></div>
+            <div><label>金額（円）</label><input class="expense-amount" type="number" min="0" step="1" inputmode="numeric" placeholder="例：6000"></div>
+            <button type="button" class="delete-button expense-delete">削除</button>
+          </div>
+        </div>
+        <div class="section-actions"><button type="button" id="add-expense">＋ 支払いを追加</button></div>
+      </section>
+      <section>
+        <h2>📊 精算サマリー</h2>
+        <div class="cost-summary">
+          <div><span>合計金額</span><strong id="expense-total">0円</strong></div>
+          <div><span>1人あたりの負担額（均等割り）</span><strong id="expense-per-person">0円</strong></div>
+        </div>
+        <h3 style="margin-top:20px;">💸 誰が誰にいくら払う？</h3>
+        <p class="section-hint">旅行メンバー全員で均等に負担する計算だよ。各支払いの「支払った人」と金額を入力すると、精算回数が少なくなるように送金先と金額を表示するよ。</p>
+        <div id="settlement-result" class="settlement-result" aria-live="polite">
+          <p class="section-hint">メンバー名と支払い金額を入力すると、精算方法がここに表示されます。</p>
+        </div>
+        <h3 style="margin-top:20px;">👥 メンバー別の精算状況</h3>
+        <div id="member-balance-result" class="settlement-result" aria-live="polite">
+          <p class="section-hint">各メンバーの負担状況がここに表示されます。</p>
+        </div>
+        <p class="save-status" id="cost-save-status" aria-live="polite">入力内容はこのブラウザに自動保存されます</p>
+      </section>
+    </div>
+  </main>
+
+  <footer>Made with love ♡ Have a nice trip!</footer>
+
+  <script>
+    const STORAGE_KEY = "glampingTripWebsite_v1";
+    const scheduleList = document.getElementById("schedule-list");
+    const saveStatus = document.getElementById("save-status");
+
+    function getScheduleData() {
+      return [...scheduleList.querySelectorAll(".schedule")].map((item) => ({
+        time: item.querySelector(".schedule-time").value,
+        title: item.querySelector(".schedule-title").value,
+        note: item.querySelector(".schedule-note").value
+      }));
+    }
+
+    function getAppData() {
+      return {
+        overview: {
+          date: document.getElementById("trip-date").value,
+          place: document.getElementById("trip-place").value,
+          budget: document.getElementById("trip-budget").value,
+          members: document.getElementById("trip-members").value
+        },
+        schedules: getScheduleData(),
+        checklist: [...document.querySelectorAll('#checklist input[type="checkbox"]')]
+          .map((checkbox) => checkbox.checked),
+        cars: Object.fromEntries(["car1-name", "car1-driver", "car1-passengers", "car1-time", "car1-meet", "car2-name", "car2-driver", "car2-passengers", "car2-time", "car2-meet"].map((id) => [id, document.getElementById(id).value])),
+        roles: [...document.querySelectorAll(".role-row")].map((row) => ({
+          name: row.querySelector(".role-name").value,
+          task: row.querySelector(".role-task").value
+        })),
+        expenses: [...document.querySelectorAll(".expense-row")].map((row) => ({
+          item: row.querySelector(".expense-item").value,
+          payer: row.querySelector(".expense-payer").value,
+          amount: row.querySelector(".expense-amount").value
+        }))
+      };
+    }
+
+    function saveData() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(getAppData()));
+        saveStatus.textContent = "保存しました（このブラウザ内）";
+      } catch (error) {
+        saveStatus.textContent = "保存できませんでした。ブラウザの設定をご確認ください。";
+      }
+      updateProgress();
+    }
+
+    function createSchedule(item = {}) {
+      const row = document.createElement("div");
+      row.className = "schedule";
+
+      const time = document.createElement("input");
+      time.type = "time";
+      time.className = "schedule-time";
+      time.value = item.time || "12:00";
+      time.setAttribute("aria-label", "予定の時刻");
+
+      const main = document.createElement("div");
+      main.className = "schedule-main";
+
+      const title = document.createElement("input");
+      title.type = "text";
+      title.className = "schedule-title";
+      title.value = item.title || "";
+      title.placeholder = "予定を入力";
+      title.setAttribute("aria-label", "予定名");
+
+      const noteLabel = document.createElement("div");
+      noteLabel.className = "note-label";
+      noteLabel.textContent = "📝 詳細・メモ";
+
+      const note = document.createElement("textarea");
+      note.className = "schedule-note";
+      note.value = item.note || "";
+      note.placeholder = "集合場所、担当者、持ち物などを入力…";
+      note.setAttribute("aria-label", "予定の詳細・メモ");
+
+      const removeButton = document.createElement("button");
+      removeButton.type = "button";
+      removeButton.className = "delete-button";
+      removeButton.textContent = "削除";
+      removeButton.setAttribute("aria-label", "この予定を削除");
+      removeButton.addEventListener("click", () => {
+        row.remove();
+        saveData();
+      });
+
+      main.append(title, noteLabel, note);
+      row.append(time, main, removeButton);
+      return row;
+    }
+
+    function updateProgress() {
+      const checkboxes = [...document.querySelectorAll('#checklist input[type="checkbox"]')];
+      const checkedCount = checkboxes.filter((checkbox) => checkbox.checked).length;
+      document.getElementById("progress").textContent =
+        `${checkedCount} / ${checkboxes.length} items checked`;
+    }
+
+    function createExpense(item = {}) {
+      const row = document.createElement("div");
+      row.className = "expense-row";
+      const fields = [
+        ["内容", "expense-item", "例：食材・飲み物", item.item || "", "text"],
+        ["支払った人", "expense-payer", "例：あやと", item.payer || "", "text"],
+        ["金額（円）", "expense-amount", "例：6000", item.amount ?? "", "number"]
+      ];
+      fields.forEach(([labelText, className, placeholder, value, type]) => {
+        const wrap = document.createElement("div");
+        const label = document.createElement("label");
+        label.textContent = labelText;
+        const input = document.createElement("input");
+        input.type = type;
+        input.className = className;
+        input.placeholder = placeholder;
+        input.value = value;
+        if (type === "number") { input.min = "0"; input.step = "1"; input.inputMode = "numeric"; }
+        wrap.append(label, input);
+        row.appendChild(wrap);
+      });
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "delete-button expense-delete";
+      remove.textContent = "削除";
+      remove.addEventListener("click", () => { row.remove(); saveData(); updateCostSummary(); });
+      row.appendChild(remove);
+      return row;
+    }
+
+    function updateCostSummary() {
+      const membersRaw = document.getElementById("trip-members")?.value || "";
+      const members = [...new Set(membersRaw.split(/[、,，\\n]+/).map(name => name.trim()).filter(Boolean))];
+      const rows = [...document.querySelectorAll(".expense-row")];
+      const expenses = rows.map(row => ({
+        item: row.querySelector(".expense-item")?.value.trim() || "支払い",
+        payer: row.querySelector(".expense-payer")?.value.trim() || "",
+        amount: Math.max(0, Math.floor(Number(row.querySelector(".expense-amount")?.value) || 0))
+      })).filter(expense => expense.amount > 0);
+      const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+      document.getElementById("expense-total").textContent = `${total.toLocaleString("ja-JP")}円`;
+      document.getElementById("expense-per-person").textContent = members.length
+        ? `${Math.round(total / members.length).toLocaleString("ja-JP")}円`
+        : "メンバー名を入力";
+
+      const result = document.getElementById("settlement-result");
+      const memberResult = document.getElementById("member-balance-result");
+      if (!result) return;
+      result.replaceChildren();
+      if (memberResult) memberResult.replaceChildren();
+
+      if (members.length < 2) {
+        result.innerHTML = '<p class="settlement-warning">精算するには、旅行メンバー欄に2人以上の名前を入力してね（名前は「、」または「,」で区切ってね）。</p>';
+        if (memberResult) memberResult.innerHTML = '<p class="section-hint">メンバー名を2人以上入力すると、各メンバーの状況が表示されます。</p>';
+        return;
+      }
+      if (expenses.length === 0) {
+        result.innerHTML = '<p class="section-hint">支払い内容・支払った人・金額を入力すると、誰が誰にいくら払うかがここに表示されるよ。</p>';
+        if (memberResult) {
+          members.forEach(name => {
+            const item = document.createElement("div");
+            item.className = "member-balance-item";
+            const person = document.createElement("span");
+            person.className = "member-balance-name";
+            person.textContent = name;
+            const status = document.createElement("span");
+            status.className = "member-balance-status clear";
+            status.textContent = "支払い入力待ち";
+            item.append(person, status);
+            memberResult.appendChild(item);
+          });
+        }
+        return;
+      }
+
+      const balances = Object.fromEntries(members.map(name => [name, 0]));
+      const unknownPayers = [];
+      for (const expense of expenses) {
+        const payer = members.find(name => name === expense.payer);
+        if (!payer) {
+          unknownPayers.push(expense.payer || "（未入力）");
+          continue;
+        }
+        balances[payer] += expense.amount;
+        const baseShare = Math.floor(expense.amount / members.length);
+        const remainder = expense.amount % members.length;
+        members.forEach((name, index) => {
+          balances[name] -= baseShare + (index < remainder ? 1 : 0);
+        });
+      }
+
+      const warnings = [...new Set(unknownPayers)];
+      if (warnings.length) {
+        const warning = document.createElement("p");
+        warning.className = "settlement-warning";
+        warning.textContent = `支払った人をメンバー名と一致させてね：${warnings.join("、")}。名前が一致しない支払いは精算計算に含めていないよ。`;
+        result.appendChild(warning);
+      }
+
+      if (memberResult) {
+        members.forEach(name => {
+          const balance = Math.round(balances[name]);
+          const item = document.createElement("div");
+          item.className = "member-balance-item";
+          const person = document.createElement("span");
+          person.className = "member-balance-name";
+          person.textContent = name;
+          const status = document.createElement("span");
+          status.className = "member-balance-status";
+          if (balance > 0) {
+            status.classList.add("receive");
+            status.textContent = `${balance.toLocaleString("ja-JP")}円受け取る`;
+          } else if (balance < 0) {
+            status.classList.add("pay");
+            status.textContent = `${Math.abs(balance).toLocaleString("ja-JP")}円支払う`;
+          } else {
+            status.classList.add("clear");
+            status.textContent = "追加精算なし";
+          }
+          item.append(person, status);
+          memberResult.appendChild(item);
+        });
+      }
+
+      const creditors = members.map(name => ({ name, amount: Math.max(0, Math.round(balances[name] * 100) / 100) }))
+        .filter(person => person.amount > 0).sort((a, b) => b.amount - a.amount);
+      const debtors = members.map(name => ({ name, amount: Math.max(0, Math.round(-balances[name] * 100) / 100) }))
+        .filter(person => person.amount > 0).sort((a, b) => b.amount - a.amount);
+
+      const transfers = [];
+      let i = 0, j = 0;
+      while (i < debtors.length && j < creditors.length) {
+        const amount = Math.min(debtors[i].amount, creditors[j].amount);
+        if (amount > 0) transfers.push({ from: debtors[i].name, to: creditors[j].name, amount: Math.round(amount) });
+        debtors[i].amount = Math.round((debtors[i].amount - amount) * 100) / 100;
+        creditors[j].amount = Math.round((creditors[j].amount - amount) * 100) / 100;
+        if (debtors[i].amount < 0.01) i++;
+        if (creditors[j].amount < 0.01) j++;
+      }
+
+      if (!transfers.length) {
+        const message = document.createElement("p");
+        message.className = "section-hint";
+        message.textContent = warnings.length ? "支払った人の名前を直すと、精算結果が表示されるよ。" : "現在の入力では、追加の精算は必要ないよ！";
+        result.appendChild(message);
+        return;
+      }
+
+      transfers.forEach(transfer => {
+        const item = document.createElement("div");
+        item.className = "settlement-item";
+        const text = document.createElement("span");
+        text.className = "settlement-transfer";
+        text.textContent = `${transfer.from} → ${transfer.to}`;
+        const amount = document.createElement("strong");
+        amount.className = "settlement-amount";
+        amount.textContent = `${transfer.amount.toLocaleString("ja-JP")}円`;
+        item.append(text, amount);
+        result.appendChild(item);
+      });
+      const note = document.createElement("p");
+      note.className = "settlement-note";
+      note.textContent = "※全員が同じ割合で負担する前提の目安だよ。参加しない費用がある場合や、負担割合を変えたい場合は別途調整してね。";
+      result.appendChild(note);
+    }
+
+    function loadData() {
+      let data;
+      try {
+        data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+      } catch (error) {
+        data = null;
+      }
+      if (!data) {
+        document.querySelectorAll(".schedule").forEach((row) => {
+          row.querySelector(".delete-button").addEventListener("click", () => {
+            row.remove();
+            saveData();
+          });
+        });
+        saveData();
+        updateCostSummary();
+        return;
+      }
+
+      if (data.overview) {
+        document.getElementById("trip-date").value = data.overview.date ?? "";
+        document.getElementById("trip-place").value = data.overview.place ?? "";
+        document.getElementById("trip-budget").value = data.overview.budget ?? "";
+        document.getElementById("trip-members").value = data.overview.members ?? "";
+      }
+
+      if (Array.isArray(data.schedules)) {
+        scheduleList.replaceChildren();
+        data.schedules.forEach((item) => scheduleList.appendChild(createSchedule(item)));
+      }
+
+      if (Array.isArray(data.checklist)) {
+        const checkboxes = [...document.querySelectorAll('#checklist input[type="checkbox"]')];
+        checkboxes.forEach((checkbox, index) => {
+          checkbox.checked = Boolean(data.checklist[index]);
+        });
+      }
+      if (data.cars) {
+        Object.entries(data.cars).forEach(([id, value]) => {
+          const field = document.getElementById(id);
+          if (field) field.value = value ?? "";
+        });
+      }
+      if (Array.isArray(data.roles)) {
+        document.querySelectorAll(".role-row").forEach((row, index) => {
+          const role = data.roles[index];
+          if (!role) return;
+          row.querySelector(".role-name").value = role.name ?? "";
+          row.querySelector(".role-task").value = role.task ?? "";
+        });
+      }
+      if (Array.isArray(data.expenses)) {
+        const expenseList = document.getElementById("expense-list");
+        expenseList.replaceChildren();
+        data.expenses.forEach((item) => expenseList.appendChild(createExpense(item)));
+      }
+      updateProgress();
+      updateCostSummary();
+    }
+
+    document.getElementById("add-expense").addEventListener("click", () => {
+      document.getElementById("expense-list").appendChild(createExpense());
+      saveData();
+      updateCostSummary();
+    });
+
+    document.getElementById("add-schedule").addEventListener("click", () => {
+      const row = createSchedule();
+      scheduleList.appendChild(row);
+      row.querySelector(".schedule-title").focus();
+      saveData();
+    });
+
+    document.getElementById("reset-list").addEventListener("click", () => {
+      document.querySelectorAll('#checklist input[type="checkbox"]').forEach((checkbox) => {
+        checkbox.checked = false;
+      });
+      saveData();
+    });
+
+    document.addEventListener("input", (event) => {
+      if (event.target.matches("input, textarea, select")) {
+        saveData();
+        if (event.target.closest("#roles-page")) {
+          const status = document.getElementById("roles-save-status");
+          if (status) status.textContent = "保存しました（このブラウザ内）";
+        }
+        if (event.target.closest("#cost-page") || event.target.id === "trip-members") {
+          updateCostSummary();
+          const status = document.getElementById("cost-save-status");
+          if (status) status.textContent = "保存しました（このブラウザ内）";
+        }
+      }
+    });
+    document.addEventListener("change", (event) => {
+      if (event.target.matches("input, textarea, select")) {
+        saveData();
+        if (event.target.closest("#roles-page")) {
+          const status = document.getElementById("roles-save-status");
+          if (status) status.textContent = "保存しました（このブラウザ内）";
+        }
+        if (event.target.closest("#cost-page") || event.target.id === "trip-members") {
+          updateCostSummary();
+          const status = document.getElementById("cost-save-status");
+          if (status) status.textContent = "保存しました（このブラウザ内）";
+        }
+      }
+    });
+
+
+    function showPage(pageId) {
+      document.querySelectorAll(".page-view").forEach((page) => {
+        page.hidden = page.id !== pageId;
+      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    document.querySelectorAll("[data-page]").forEach((button) => {
+      button.addEventListener("click", () => showPage(button.dataset.page));
+    });
+    document.querySelectorAll("[data-home]").forEach((button) => {
+      button.addEventListener("click", () => showPage("home-page"));
+    });
+
+    loadData();
+    updateCostSummary();
+    updateProgress();
+    updateCostSummary();
+    showPage("home-page");
+  </script><script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
+  import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js";
+
+  // Firebaseの設定
+  const firebaseConfig = {
+    apiKey: "AIzaSyC0NRcAXFx_nIYx6p0zkpw018iuRnv_qJc",
+    authDomain: "guranping.firebaseapp.com",
+    projectId: "guranping",
+    storageBucket: "guranping.firebasestorage.app",
+    messagingSenderId: "1071970545935",
+    appId: "1:1071970545935:web:181c75f8d320fd65380e7a",
+    measurementId: "G-29HNSNZDTE"
+  };
+
+  // 初期化
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // さっき画面で見えていた plans コレクションの中のドキュメントを指定
+  const tripDocRef = doc(db, "plans", "7H6TZn2LYfqU18mtEHz3");
+
+  const scheduleList = document.getElementById("schedule-list");
+  const saveStatus = document.getElementById("save-status");
+  let isUpdatingFromRemote = false;
+
+  function getAppData() {
+    return {
+      overview: {
+        date: document.getElementById("trip-date").value,
+        place: document.getElementById("trip-place").value,
+        budget: document.getElementById("trip-budget").value,
+        members: document.getElementById("trip-members").value
+      },
+      schedules: [...scheduleList.querySelectorAll(".schedule")].map((item) => ({
+        time: item.querySelector(".schedule-time").value,
+        title: item.querySelector(".schedule-title").value,
+        note: item.querySelector(".schedule-note").value
+      })),
+      checklist: [...document.querySelectorAll('#checklist input[type="checkbox"]')].map((c) => c.checked),
+      cars: Object.fromEntries(["car1-name", "car1-driver", "car1-passengers", "car1-time", "car1-meet", "car2-name", "car2-driver", "car2-passengers", "car2-time", "car2-meet"].map((id) => [id, document.getElementById(id)?.value || ""])),
+      roles: [...document.querySelectorAll(".role-row")].map((row) => ({
+        name: row.querySelector(".role-name").value,
+        task: row.querySelector(".role-task").value
+      })),
+      expenses: [...document.querySelectorAll(".expense-row")].map((row) => ({
+        item: row.querySelector(".expense-item").value,
+        payer: row.querySelector(".expense-payer").value,
+        amount: row.querySelector(".expense-amount").value
+      }))
+    };
+  }
+
+  async function saveData() {
+    if (isUpdatingFromRemote) return;
+    try {
+      await setDoc(tripDocRef, getAppData(), { merge: true });
+      if (saveStatus) saveStatus.textContent = "クラウドに保存しました ☁️";
+    } catch (error) {
+      console.error("Save error:", error);
+      if (saveStatus) saveStatus.textContent = "保存に失敗しました";
+    }
+  }
+
+  // リアルタイムで同期するリスナー
+  onSnapshot(tripDocRef, (docSnap) => {
+    if (!docSnap.exists()) return;
+    isUpdatingFromRemote = true;
+    const data = docSnap.data();
+
+    if (data.overview) {
+      document.getElementById("trip-date").value = data.overview.date ?? "";
+      document.getElementById("trip-place").value = data.overview.place ?? "";
+      document.getElementById("trip-budget").value = data.overview.budget ?? "";
+      document.getElementById("trip-members").value = data.overview.members ?? "";
+    }
+
+    if (Array.isArray(data.schedules)) {
+      scheduleList.replaceChildren();
+      data.schedules.forEach((item) => scheduleList.appendChild(createSchedule(item)));
+    }
+
+    if (Array.isArray(data.checklist)) {
+      const checkboxes = [...document.querySelectorAll('#checklist input[type="checkbox"]')];
+      checkboxes.forEach((cb, idx) => { cb.checked = Boolean(data.checklist[idx]); });
+    }
+
+    if (data.cars) {
+      Object.entries(data.cars).forEach(([id, val]) => {
+        const field = document.getElementById(id);
+        if (field) field.value = val ?? "";
+      });
+    }
+
+    if (Array.isArray(data.roles)) {
+      document.querySelectorAll(".role-row").forEach((row, idx) => {
+        if (data.roles[idx]) {
+          row.querySelector(".role-name").value = data.roles[idx].name ?? "";
+          row.querySelector(".role-task").value = data.roles[idx].task ?? "";
+        }
+      });
+    }
+
+    if (Array.isArray(data.expenses)) {
+      const expenseList = document.getElementById("expense-list");
+      expenseList.replaceChildren();
+      data.expenses.forEach((item) => expenseList.appendChild(createExpense(item)));
+    }
+
+    updateProgress();
+    if (typeof updateCostSummary === "function") updateCostSummary();
+    isUpdatingFromRemote = false;
+  });
+
+  document.addEventListener("input", (e) => {
+    if (e.target.matches("input, textarea, select")) {
+      saveData();
+      if (e.target.closest("#cost-page") || e.target.id === "trip-members") updateCostSummary();
+    }
+  });
+
+  document.addEventListener("change", (e) => {
+    if (e.target.matches("input, textarea, select")) {
+      saveData();
+      if (e.target.closest("#cost-page") || e.target.id === "trip-members") updateCostSummary();
+    }
+  });
+</script>
+</body>
+</html>
